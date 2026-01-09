@@ -122,3 +122,16 @@ code-collect --changed /path/to/project
 ## Contributing
 
 Issues and PRs welcome! This tool was built to scratch a specific itch - making LLM context sharing effortless.
+
+### Running Tests
+
+```bash
+python3 test_code_collect.py
+```
+
+The test suite covers:
+- File detection and filtering
+- Gitignore pattern matching  
+- Git integration (modified/staged files)
+- Content formatting
+- Error handling
