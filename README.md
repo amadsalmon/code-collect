@@ -88,13 +88,15 @@ code-collect /path/to/project
 ## Features
 
 - **Smart file detection** - Only shows text files, skips binaries
-- **Intelligent filtering** - Ignores `.git`, `node_modules`, build directories
+- **Gitignore integration** - Respects your project's `.gitignore` patterns
+- **Intelligent filtering** - Ignores common build/cache directories
 - **Size limits** - Skips files over 1MB
 - **Syntax highlighting** - Proper language detection for 30+ file types
 - **Cross-platform** - Works on macOS, Linux, Windows (with WSL)
 
 ## What gets ignored?
 
+- Everything in your `.gitignore` file
 - Binary files and executables
 - Common build/cache directories (`.git`, `node_modules`, `dist`, `build`, etc.)
 - IDE files (`.vscode`, `.idea`)
