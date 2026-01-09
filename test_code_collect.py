@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa: F821 - exec() imports confuse static analysis
 """
 Unit tests for code-collect
 Run with: python3 test_code_collect.py
