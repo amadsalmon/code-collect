@@ -15,6 +15,7 @@ When working with LLMs on coding tasks, you often need to share multiple files f
 
 ```bash
 $ code-collect
+
 Scanning /Users/you/project...
 Found 34 eligible files.
 # Interactive fzf interface opens
@@ -22,21 +23,20 @@ Processing 6 files...
 ✅ Copied 6 files to clipboard!
 ```
 
-Output format:
-```
-// src/components/Button.tsx
-```typescript
-export const Button = () => {
-  return <button>Click me</button>
-}
-```
+Output format (without rendering):
+>// src/components/Button.tsx  
+>\`\`\`typescript  
+>  export const Button = () => {  
+> &nbsp;&nbsp;&nbsp;&nbsp; return "Click me"  
+>}  
+>\`\`\`
+>
+>// src/utils/helpers.py  
+>\`\`\`python  
+>def format_data(data):  
+>&nbsp;&nbsp;&nbsp;&nbsp; return data.strip()  
+>\`\`\`
 
-// src/utils/helpers.py  
-```python
-def format_data(data):
-    return data.strip()
-```
-```
 
 ## Installation
 
@@ -122,7 +122,3 @@ code-collect --changed /path/to/project
 ## Contributing
 
 Issues and PRs welcome! This tool was built to scratch a specific itch - making LLM context sharing effortless.
-
-## License
-
-MIT
