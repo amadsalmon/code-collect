@@ -72,14 +72,29 @@ sudo mv code-collect /usr/local/bin/
 ## Usage
 
 ```bash
-# Run in current directory
+# Interactive selection from all files
 code-collect
 
-# Run in specific directory  
+# Auto-collect all git modified files (staged + unstaged)
+code-collect --changed
+
+# Auto-collect only git staged files  
+code-collect --staged
+
+# Scan specific directory
 code-collect /path/to/project
+
+# Auto-collect modified files from specific directory
+code-collect --changed /path/to/project
 ```
 
-### Controls
+### Git Integration
+
+- **`--changed`** - Automatically collects all modified files (staged + unstaged), skips interactive selection
+- **`--staged`** - Automatically collects only staged files, perfect for pre-commit reviews
+- **Default** - Interactive fuzzy finder selection from all eligible files
+
+### Controls (Interactive Mode)
 - **Arrow keys** - Navigate files
 - **Tab** - Multi-select files
 - **Enter** - Confirm selection
@@ -87,6 +102,8 @@ code-collect /path/to/project
 
 ## Features
 
+- **Git integration** - Auto-collect modified or staged files with `--changed` and `--staged`
+- **Interactive selection** - Fuzzy finder with preview for precise file picking
 - **Smart file detection** - Only shows text files, skips binaries
 - **Gitignore integration** - Respects your project's `.gitignore` patterns
 - **Intelligent filtering** - Ignores common build/cache directories

@@ -14,11 +14,15 @@ Arguments:
 Options:
     -h, --help         Show this help message
     -v, --version      Show version information
+    --changed          Auto-collect all git modified files (staged + unstaged)
+    --staged           Auto-collect all git staged files
 
 Examples:
-    code-collect                    # Scan current directory
+    code-collect                    # Interactive selection from all files
+    code-collect --changed          # Auto-collect all modified files
+    code-collect --staged           # Auto-collect all staged files
     code-collect /path/to/project   # Scan specific directory
-    code-collect --help             # Show help
+    code-collect --changed ~/code   # Auto-collect modified files from ~/code
 
 Features:
     • Interactive file selection with fuzzy search (fzf)
@@ -68,6 +72,45 @@ def is_text_file(filepath):
     
     mime_type, _ = mimetypes.guess_type(str(filepath))
     return mime_type and mime_type.startswith('text/')
+
+def get_git_modified_files(base_path):
+    """Get list of modified files from git"""
+    try:
+        # Get modified files (both staged and unstaged)
+        result = subprocess.run([
+            'git', 'diff', '--name-only', 'HEAD'
+        ], cwd=base_path, capture_output=True, text=True, check=True)
+        
+        modified_files = []
+        for line in result.stdout.strip().split('\n'):
+            if line:  # Skip empty lines
+                file_path = base_path / line
+                if file_path.exists() and file_path.is_file():
+                    modified_files.append(file_path)
+        
+        return modified_files
+    
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+
+def get_git_staged_files(base_path):
+    """Get list of staged files from git"""
+    try:
+        result = subprocess.run([
+            'git', 'diff', '--cached', '--name-only'
+        ], cwd=base_path, capture_output=True, text=True, check=True)
+        
+        staged_files = []
+        for line in result.stdout.strip().split('\n'):
+            if line:  # Skip empty lines
+                file_path = base_path / line
+                if file_path.exists() and file_path.is_file():
+                    staged_files.append(file_path)
+        
+        return staged_files
+    
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
 
 def load_gitignore_patterns(base_path):
     """Load patterns from .gitignore file"""
@@ -225,23 +268,30 @@ def show_version():
     print("Interactive file content aggregator for LLM context")
 
 def main():
-    # Handle command line arguments
-    if len(sys.argv) > 1:
-        arg = sys.argv[1]
+    # Parse command line arguments
+    directory = '.'
+    git_mode = None
+    
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
         if arg in ['-h', '--help']:
             show_help()
             sys.exit(0)
         elif arg in ['-v', '--version']:
             show_version()
             sys.exit(0)
+        elif arg == '--changed':
+            git_mode = 'changed'
+        elif arg == '--staged':
+            git_mode = 'staged'
         elif arg.startswith('-'):
             print(f"Unknown option: {arg}")
             print("Use --help for usage information")
             sys.exit(1)
         else:
             directory = arg
-    else:
-        directory = '.'
+        i += 1
     
     base_path = Path(directory).resolve()
     
@@ -249,15 +299,51 @@ def main():
         print(f"Error: Directory '{directory}' does not exist.")
         sys.exit(1)
     
-    print(f"Scanning {base_path}...")
-    files = get_files(base_path)
-    
-    if not files:
-        print("No eligible files found.")
-        sys.exit(1)
-    
-    print(f"Found {len(files)} eligible files.")
-    selected_files = select_files_with_fzf(files, base_path)
+    # Get files based on mode
+    if git_mode == 'changed':
+        print(f"Getting git modified files from {base_path}...")
+        files = get_git_modified_files(base_path)
+        if not files:
+            print("No modified files found in git.")
+            sys.exit(1)
+        # Filter files through normal checks
+        filtered_files = []
+        gitignore_patterns = load_gitignore_patterns(base_path)
+        for f in files:
+            if (not should_ignore(f, base_path, gitignore_patterns) and 
+                is_text_file(f) and
+                f.stat().st_size <= MAX_FILE_SIZE):
+                filtered_files.append(f)
+        files = sorted(filtered_files)
+        selected_files = files  # Auto-select all modified files
+        
+    elif git_mode == 'staged':
+        print(f"Getting git staged files from {base_path}...")
+        files = get_git_staged_files(base_path)
+        if not files:
+            print("No staged files found in git.")
+            sys.exit(1)
+        # Filter files through normal checks
+        filtered_files = []
+        gitignore_patterns = load_gitignore_patterns(base_path)
+        for f in files:
+            if (not should_ignore(f, base_path, gitignore_patterns) and 
+                is_text_file(f) and
+                f.stat().st_size <= MAX_FILE_SIZE):
+                filtered_files.append(f)
+        files = sorted(filtered_files)
+        selected_files = files  # Auto-select all staged files
+        
+    else:
+        print(f"Scanning {base_path}...")
+        files = get_files(base_path)
+        
+        if not files:
+            print("No eligible files found.")
+            sys.exit(1)
+        
+        print(f"Found {len(files)} eligible files.")
+        selected_files = select_files_with_fzf(files, base_path)
     
     if not selected_files:
         print("No files selected.")
