@@ -81,6 +81,12 @@ code-collect --changed
 # Auto-collect only git staged files  
 code-collect --staged
 
+# Auto-collect all files (respects .gitignore)
+code-collect --all
+
+# Auto-collect all files under specific subpath
+code-collect --all src/
+
 # Scan specific directory
 code-collect /path/to/project
 
@@ -92,6 +98,7 @@ code-collect --changed /path/to/project
 
 - **`--changed`** - Automatically collects all modified files (staged + unstaged), skips interactive selection
 - **`--staged`** - Automatically collects only staged files, perfect for pre-commit reviews
+- **`--all`** - Automatically collects all eligible files while respecting `.gitignore`, skips interactive selection
 - **Default** - Interactive fuzzy finder selection from all eligible files
 
 ### Controls (Interactive Mode)

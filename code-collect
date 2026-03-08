@@ -16,11 +16,14 @@ Options:
     -v, --version      Show version information
     --changed          Auto-collect all git modified files (staged + unstaged)
     --staged           Auto-collect all git staged files
+    --all              Auto-collect all files (respects .gitignore)
 
 Examples:
     code-collect                    # Interactive selection from all files
     code-collect --changed          # Auto-collect all modified files
     code-collect --staged           # Auto-collect all staged files
+    code-collect --all              # Auto-collect all files
+    code-collect --all src/         # Auto-collect all files under src/
     code-collect /path/to/project   # Scan specific directory
     code-collect --changed ~/code   # Auto-collect modified files from ~/code
 
@@ -285,6 +288,8 @@ def main():
             git_mode = 'changed'
         elif arg == '--staged':
             git_mode = 'staged'
+        elif arg == '--all':
+            git_mode = 'all'
         elif arg.startswith('-'):
             print(f"Unknown option: {arg}")
             print("Use --help for usage information")
@@ -333,6 +338,14 @@ def main():
                 filtered_files.append(f)
         files = sorted(filtered_files)
         selected_files = files  # Auto-select all staged files
+        
+    elif git_mode == 'all':
+        print(f"Collecting all files from {base_path}...")
+        files = get_files(base_path)
+        if not files:
+            print("No eligible files found.")
+            sys.exit(1)
+        selected_files = files  # Auto-select all files
         
     else:
         print(f"Scanning {base_path}...")
